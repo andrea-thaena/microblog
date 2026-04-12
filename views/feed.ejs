@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Andrea's Misc. Internet Notebook</title>
+  <link rel="stylesheet" href="/public/style.css">
+</head>
+<body class="feed-page">
+  <header class="feed-header">
+    <h1><a href="/">Andrea's Misc. Internet Notebook</a></h1>
+    <% if (isAdmin) { %>
+      <a href="/admin" class="admin-link">Admin</a>
+    <% } %>
+  </header>
+
+  <nav class="category-bar">
+    <a href="/" class="category-tab <%= !activeCategory ? 'active' : '' %>">All</a>
+    <% categories.forEach(c => { %>
+      <a href="/?category=<%= encodeURIComponent(c) %>"
+         class="category-tab <%= activeCategory === c ? 'active' : '' %>">
+        <%= c %>
+      </a>
+    <% }) %>
+  </nav>
+
+  <% if (tags.length) { %>
+    <nav class="tag-bar">
+      <% tags.forEach(t => { %>
+        <a href="/?tag=<%= encodeURIComponent(t.name) %>"
+           class="tag-pill <%= activeTag === t.name ? 'active' : '' %>">
+          <%= t.name %> <span class="tag-count"><%= t.count %></span>
+        </a>
+      <% }) %>
+    </nav>
+  <% } %>
+
+  <main class="feed">
+    <% if (!posts.length) { %>
+      <p class="empty">Nothing here yet.</p>
+    <% } %>
+
+    <% posts.forEach(post => { %>
+      <article class="card">
+        <%# Rendered markdown body %>
+        <% if (post.body) { %>
+          <div class="card-body"><%- renderMarkdown(post.body) %></div>
+        <% } %>
+
+        <%# Media %>
+        <% post.media.forEach(m => { %>
+          <% if (m.type === 'image') { %>
+            <div class="card-media">
+              <img src="<%= m.url %>" alt="" loading="lazy">
+            </div>
+
+          <% } else if (m.type === 'audio') { %>
+            <div class="card-media card-audio">
+              <% if (m.original_name) { %><span class="audio-name"><%= m.original_name %></span><% } %>
+              <audio controls preload="metadata">
+                <source src="<%= m.url %>" type="<%= m.mime_type %>">
+              </audio>
+            </div>
+
+          <% } else if (m.type === 'video') { %>
+            <div class="card-media">
+              <video controls preload="metadata" playsinline>
+                <source src="<%= m.url %>" type="<%= m.mime_type %>">
+              </video>
+            </div>
+
+          <% } else if (m.type === 'link') { %>
+            <% const embed = getEmbedInfo(m.url); %>
+            <% if (embed && embed.type === 'youtube') { %>
+              <div class="card-media card-embed">
+                <iframe src="<%= embed.embedUrl %>" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen loading="lazy"></iframe>
+              </div>
+            <% } else if (embed && embed.type === 'tiktok') { %>
+              <div class="card-media card-embed">
+                <blockquote class="tiktok-embed" data-video-url="<%= m.url %>">
+                  <a href="<%= m.url %>" target="_blank">View on TikTok</a>
+                </blockquote>
+              </div>
+            <% } else { %>
+              <a href="<%= m.url %>" target="_blank" rel="noopener" class="link-card">
+                <% if (m.link_image) { %>
+                  <div class="link-card-image" style="background-image: url('<%= m.link_image %>')"></div>
+                <% } %>
+                <div class="link-card-text">
+                  <strong><%= m.link_title || m.url %></strong>
+                  <% if (m.link_description) { %>
+                    <p><%= m.link_description.length > 150 ? m.link_description.slice(0, 150) + '...' : m.link_description %></p>
+                  <% } %>
+                  <span class="link-card-url"><%= new URL(m.url).hostname %></span>
+                </div>
+              </a>
+            <% } %>
+          <% } else if (m.type === 'file') { %>
+            <div class="card-media card-file">
+              <a href="<%= m.url %>" target="_blank" rel="noopener" class="file-download">
+                <span class="file-icon">PDF</span>
+                <span class="file-name"><%= m.original_name || 'Download file' %></span>
+                <span class="file-action">Download</span>
+              </a>
+            </div>
+
+          <% } %>
+        <% }) %>
+
+        <footer class="card-footer">
+          <div class="card-footer-left">
+            <time><%= new Date(post.created_at + 'Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></time>
+            <% if (post.category) { %>
+              <a href="/?category=<%= encodeURIComponent(post.category) %>" class="category-label"><%= post.category %></a>
+            <% } %>
+          </div>
+          <% if (post.tags.length) { %>
+            <div class="card-tags">
+              <% post.tags.forEach(t => { %>
+                <a href="/?tag=<%= encodeURIComponent(t) %>" class="tag-pill small"><%= t %></a>
+              <% }) %>
+            </div>
+          <% } %>
+        </footer>
+      </article>
+    <% }) %>
+  </main>
+
+  <script async src="https://www.tiktok.com/embed.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="/public/style.css">
+</head>
+<body class="login-page">
+  <div class="login-box">
+    <h1>Andrea's Misc. Internet Notebook</h1>
+    <% if (error) { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+    <form method="POST" action="/admin/login">
+      <input type="password" name="password" placeholder="Password" autofocus required>
+      <button type="submit">Enter</button>
+    </form>
+  </div>
+</body>
+</html>

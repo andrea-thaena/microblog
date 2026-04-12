@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Andrea's Misc. Internet Notebook</title>
+  <link rel="stylesheet" href="/public/style.css">
+</head>
+<body class="admin-page">
+  <header class="admin-header">
+    <h1><a href="/admin">Andrea's Misc. Internet Notebook</a></h1>
+    <nav>
+      <a href="/">View Feed</a>
+      <a href="/admin/logout">Logout</a>
+    </nav>
+  </header>
+
+  <main class="admin-main">
+    <!-- Post form -->
+    <section class="post-form-section">
+      <h2><%= editing ? 'Edit Post' : 'New Post' %></h2>
+      <form method="POST"
+            action="<%= editing ? '/admin/edit/' + editing.id : '/admin/post' %>"
+            enctype="multipart/form-data"
+            class="post-form">
+
+        <textarea name="body" rows="6" placeholder="Write something... (markdown supported)"><%= editing ? editing.body : '' %></textarea>
+
+        <div class="form-row">
+          <label>Category</label>
+          <select name="category">
+            <option value="">None</option>
+            <% categories.forEach(c => { %>
+              <option value="<%= c %>" <%= (editing && editing.category === c) ? 'selected' : '' %>><%= c %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label>Tags <span class="hint">(comma-separated)</span></label>
+          <input type="text" name="tags" placeholder="thought, link, idea"
+                 value="<%= editing ? editing.tags.join(', ') : '' %>">
+        </div>
+
+        <div class="form-row">
+          <label>Files <span class="hint">(images, audio, video)</span></label>
+          <input type="file" name="files" multiple accept="image/*,audio/*,video/*,.mp3,.m4a,.mp4,.mov,.pdf">
+        </div>
+
+        <div class="url-inputs" id="urlInputs">
+          <label>URLs <span class="hint">(auto-embeds YouTube, TikTok, etc.)</span></label>
+          <% if (editing) { %>
+            <input type="url" name="urls" placeholder="https://...">
+          <% } else { %>
+            <input type="url" name="urls" placeholder="https://...">
+          <% } %>
+        </div>
+        <button type="button" class="btn-small" onclick="addUrlInput()">+ Add URL</button>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary"><%= editing ? 'Update' : 'Post' %></button>
+          <% if (editing) { %>
+            <a href="/admin" class="btn-secondary">Cancel</a>
+          <% } %>
+        </div>
+      </form>
+
+      <% if (editing && editing.media.length) { %>
+        <div class="existing-media">
+          <h3>Current Media</h3>
+          <% editing.media.forEach(m => { %>
+            <div class="media-item-admin">
+              <% if (m.type === 'image') { %>
+                <img src="<%= m.url %>" alt="" class="thumb">
+              <% } else if (m.type === 'link') { %>
+                <span class="link-preview-small"><%= m.link_title || m.url %></span>
+              <% } else { %>
+                <span><%= m.original_name || m.url %></span>
+              <% } %>
+              <form method="POST" action="/admin/media/delete/<%= m.id %>" style="display:inline">
+                <button type="submit" class="btn-delete" onclick="return confirm('Delete this media?')">×</button>
+              </form>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </section>
+
+    <!-- Post list -->
+    <section class="post-list-section">
+      <h2>All Posts (<%= posts.length %>)</h2>
+      <% posts.forEach(post => { %>
+        <article class="admin-post-card">
+          <div class="post-meta">
+            <time><%= new Date(post.created_at + 'Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) %></time>
+            <div class="post-actions">
+              <a href="/admin/edit/<%= post.id %>" class="btn-small">Edit</a>
+              <form method="POST" action="/admin/delete/<%= post.id %>" style="display:inline">
+                <button type="submit" class="btn-small btn-danger" onclick="return confirm('Delete this post?')">Delete</button>
+              </form>
+            </div>
+          </div>
+          <% if (post.body) { %>
+            <div class="post-body-preview"><%= post.body.length > 200 ? post.body.slice(0, 200) + '...' : post.body %></div>
+          <% } %>
+          <% if (post.media.length) { %>
+            <div class="media-count"><%= post.media.length %> media item<%= post.media.length > 1 ? 's' : '' %></div>
+          <% } %>
+          <% if (post.tags.length) { %>
+            <div class="post-tags-preview"><% post.tags.forEach(t => { %><span class="tag"><%= t %></span><% }) %></div>
+          <% } %>
+        </article>
+      <% }) %>
+    </section>
+  </main>
+
+  <script>
+    function addUrlInput() {
+      const container = document.getElementById('urlInputs');
+      const input = document.createElement('input');
+      input.type = 'url';
+      input.name = 'urls';
+      input.placeholder = 'https://...';
+      container.appendChild(input);
+    }
+  </script>
+</body>
+</html>
