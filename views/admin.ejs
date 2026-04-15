@@ -44,7 +44,8 @@
 
         <div class="form-row">
           <label>Files <span class="hint">(images, audio, video)</span></label>
-          <input type="file" name="files" multiple accept="image/*,audio/*,video/*,.mp3,.m4a,.mp4,.mov,.pdf">
+          <input type="file" id="filePickerInput" multiple accept="image/*,audio/*,video/*,.mp3,.m4a,.mp4,.mov,.pdf">
+          <div id="fileList"></div>
         </div>
 
         <div class="url-inputs" id="urlInputs">
@@ -123,6 +124,56 @@
       input.placeholder = 'https://...';
       container.appendChild(input);
     }
+
+    // Accumulate files across multiple picker interactions
+    const collectedFiles = [];
+    const filePicker = document.getElementById('filePickerInput');
+    const fileListEl = document.getElementById('fileList');
+
+    filePicker.addEventListener('change', () => {
+      for (const f of filePicker.files) {
+        // avoid duplicates by name+size+lastModified
+        const isDupe = collectedFiles.some(c => c.name === f.name && c.size === f.size && c.lastModified === f.lastModified);
+        if (!isDupe) collectedFiles.push(f);
+      }
+      filePicker.value = '';
+      renderFileList();
+    });
+
+    function removeFile(index) {
+      collectedFiles.splice(index, 1);
+      renderFileList();
+    }
+
+    function renderFileList() {
+      fileListEl.innerHTML = collectedFiles.map((f, i) =>
+        '<div class="queued-file">' +
+          '<span>' + f.name + '</span> ' +
+          '<button type="button" class="btn-delete" onclick="removeFile(' + i + ')">&times;</button>' +
+        '</div>'
+      ).join('');
+    }
+
+    // Before submit, build a real FormData with accumulated files
+    document.querySelector('.post-form').addEventListener('submit', function(e) {
+      if (collectedFiles.length === 0) return; // let normal submit handle it
+      e.preventDefault();
+      const form = this;
+      const fd = new FormData(form);
+      // remove any stale 'files' entries
+      fd.delete('files');
+      for (const f of collectedFiles) {
+        fd.append('files', f);
+      }
+      fetch(form.action, {
+        method: 'POST',
+        body: fd,
+      }).then(() => {
+        window.location.href = '/admin';
+      }).catch(err => {
+        alert('Upload failed: ' + err.message);
+      });
+    });
   </script>
 </body>
 </html>

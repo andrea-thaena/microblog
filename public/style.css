@@ -521,6 +521,18 @@ a:hover { color: var(--accent-hover); }
   object-fit: cover;
   border-radius: 4px;
 }
+.queued-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.5rem;
+  margin-top: 0.3rem;
+  background: var(--bg-input);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
 .link-preview-small {
   overflow: hidden;
   text-overflow: ellipsis;
