@@ -18,7 +18,7 @@ app.set('view engine', 'ejs');
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'data', 'uploads')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.use(session({

@@ -8,7 +8,7 @@ const { unfurlUrl, getEmbedInfo } = require('../lib/unfurl');
 
 // Multer config
 const storage = multer.diskStorage({
-  destination: path.join(__dirname, '..', 'uploads'),
+  destination: path.join(__dirname, '..', 'data', 'uploads'),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
     cb(null, Date.now() + '-' + Math.random().toString(36).slice(2, 8) + ext);
